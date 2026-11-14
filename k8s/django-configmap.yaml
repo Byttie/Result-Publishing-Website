@@ -1,0 +1,17 @@
+# Non-secret Django settings, loaded by the django-migrate Job and the
+# backend Deployment via envFrom. Secrets live in backend.env (backend-secret).
+# After changing a value: kubectl apply -k . && kubectl rollout restart deployment/backend -n app
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: django-configmap
+  namespace: app
+data:
+  POSTGRES_HOST: "postgres.db-production.svc.cluster.local"
+  POSTGRES_PORT: "5432"
+  REDIS_URL: "redis://redis:6379/0"
+  RESULT_CACHE_TTL: "300"
+  DJANGO_DEBUG: "false"
+  DJANGO_ALLOWED_HOSTS: "*"
+  DJANGO_CSRF_TRUSTED_ORIGINS: "http://localhost,http://localhost:8000,http://localhost:3000,http://129.212.245.100.nip.io"

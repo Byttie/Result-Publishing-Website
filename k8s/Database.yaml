@@ -1,18 +1,12 @@
+#namespace
+
 apiVersion: v1
 kind: Namespace
 metadata:
   name: db-production
 
 ---
-
-# Create Secrets
-
-
-# kubectl create secret generic postgres-secret \
-#   --from-env-file=postgres.env
-
-
-# Make Your Headless Service
+# Headless Service
 
 apiVersion: v1
 kind: Service 
@@ -27,7 +21,7 @@ spec:
     - port: 5432
 
 ---
-# Make Your ClusterIP Service
+# ClusterIP Service
 
 apiVersion: v1
 kind: Service

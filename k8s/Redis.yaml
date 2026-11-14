@@ -28,6 +28,8 @@ spec:
       targetPort: 6379
 
 ---
+# StatefulSet for Redis
+
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:

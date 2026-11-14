@@ -53,6 +53,7 @@ spec:
           periodSeconds: 20
 
 ---
+# Cluster IP Service
 
 apiVersion: v1
 kind: Service

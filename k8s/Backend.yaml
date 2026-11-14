@@ -2,23 +2,10 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: app
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: django-configmap
-  namespace: app
-data:
-  POSTGRES_HOST: "postgres.db-production.svc.cluster.local"
-  POSTGRES_PORT: "5432"
-  REDIS_URL: "redis://redis:6379/0"
-  RESULT_CACHE_TTL: "300"
-  DJANGO_DEBUG: "false"
-  DJANGO_ALLOWED_HOSTS: "*"
-  DJANGO_CSRF_TRUSTED_ORIGINS: "http://localhost,http://localhost:8000,http://localhost:3000,http://129.212.245.100.nip.io"
-
 
 ---
+# Job for Migration
+
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -45,6 +32,7 @@ spec:
             name: backend-secret
 
 ---
+# Deployment for Backend
 
 apiVersion: apps/v1
 kind: Deployment
@@ -102,6 +90,7 @@ spec:
           periodSeconds: 20
 
 ---
+# Cluster IP service
 
 apiVersion: v1
 kind: Service
