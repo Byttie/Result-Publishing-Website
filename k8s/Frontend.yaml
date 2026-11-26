@@ -30,7 +30,7 @@ spec:
           value: "backend.app.svc.cluster.local:8000"
         # kube-dns Service IP (kubectl get svc -n kube-system kube-dns)
         - name: NGINX_RESOLVER
-          value: "10.109.0.10"
+          value: "10.43.0.10"
 
         resources:
           requests:

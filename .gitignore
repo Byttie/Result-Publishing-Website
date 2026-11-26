@@ -12,3 +12,19 @@ frontend/dist/
 
 k8s/*.env 
 
+# Terraform: never push (provider binaries are large; state and main.tf contain IPs/account details)
+.terraform/
+*.tf
+*.tfvars
+*.tfvars.json
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+.terraform.tfstate.lock.info
+crash.log
+crash.*.log
+*.tfplan
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
