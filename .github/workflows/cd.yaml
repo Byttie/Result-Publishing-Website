@@ -1,0 +1,60 @@
+name: CD
+
+# Runs after CI finishes on main. CI has already pushed rag1b/rpw-*:<short sha> to Docker Hub;
+# this workflow deploys that tag. It runs on the self-hosted runner installed on the EC2
+# instance itself, so no SSH, AWS keys or security-group rules are needed.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+concurrency: production
+
+jobs:
+  deploy:
+    # Only after a successful CI run caused by a push to main (not a pull request).
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    runs-on: [self-hosted, linux]
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      # TAG = short SHA that CI pushed; KUBECONFIG = the runner user's kubeconfig on EC2.
+      - name: Set image tag and kubeconfig
+        run: |
+          echo "TAG=${SHA::7}" >> "$GITHUB_ENV"
+          echo "KUBECONFIG=$HOME/.kube/config" >> "$GITHUB_ENV"
+
+      # Check out exactly the commit CI tested (into the runner's workspace on EC2).
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      # The env files come from GitHub Secrets (never committed).
+      # Passed through env so characters like $ ` " in values are kept as-is.
+      - name: Write env files from GitHub Secrets
+        env:
+          BACKEND_ENV: ${{ secrets.BACKEND_ENV }}
+          POSTGRES_ENV: ${{ secrets.POSTGRES_ENV }}
+        run: |
+          [ -n "$BACKEND_ENV" ] && [ -n "$POSTGRES_ENV" ] || { echo "BACKEND_ENV or POSTGRES_ENV secret is empty"; exit 1; }
+          umask 077
+          printf '%s\n' "$BACKEND_ENV" > k8s/backend.env
+          printf '%s\n' "$POSTGRES_ENV" > k8s/postgres.env
+
+      - name: Deploy to k3s
+        working-directory: k8s
+        run: |
+          set -euo pipefail
+          sed -i "s/newTag: .*/newTag: \"$TAG\"/" kustomization.yaml
+          # A Job's pod template can't be changed, so recreate it (this runs migrations).
+          kubectl delete job django-migrate -n app --ignore-not-found
+          kubectl apply -k .
+          kubectl wait --for=condition=complete job/django-migrate -n app --timeout=300s
+          kubectl rollout status deployment/backend -n app --timeout=180s
+          kubectl rollout status deployment/frontend -n app --timeout=180s
+
+      # Delete all .env from runner's workspace.
+      - name: Remove env files
+        if: always()
+        run: rm -f k8s/backend.env k8s/postgres.env

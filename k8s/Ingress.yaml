@@ -13,7 +13,7 @@ spec:
   rules:
   # NGINX Ingress Controller requires a host. nip.io resolves to the
   # Load Balancer IP; replace it with your domain when you have one.
-  - host: 15.206.67.147.nip.io
+  - host: 13.201.124.65.nip.io
     http:
       paths:
       - path: /api/

@@ -10,7 +10,9 @@ frontend/dist/
 
 *.env 
 
-k8s/*.env 
+k8s/*.env
+
+*.pdf
 
 # Terraform: never push (provider binaries are large; state and main.tf contain IPs/account details)
 .terraform/
